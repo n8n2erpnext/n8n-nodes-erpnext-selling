@@ -1,0 +1,692 @@
+[
+  {
+    "id": "sellRealSalesFlowV2Test01",
+    "name": "ERPNext Selling V2 Real Sales Flow Test",
+    "active": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "erpnext-selling-v2-real-sales-flow-test",
+          "responseMode": "lastNode",
+          "responseData": "allEntries",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1400,
+          0
+        ],
+        "id": "real-sales-webhook",
+        "name": "POST Webhook",
+        "webhookId": "erpnext-selling-v2-real-sales-flow-test"
+      },
+      {
+        "parameters": {
+          "jsCode": "const now = new Date();\nconst today = now.toISOString().slice(0, 10);\nconst due = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);\nconst stamp = Date.now();\nconst runId = `N8N-SELL-REAL-${stamp}`;\nreturn [{\n  json: {\n    runId,\n    company: 'Thái Duy Digital',\n    transactionDate: today,\n    validTill: due,\n    deliveryDate: due,\n    dueDate: due,\n    customerName: `${runId} KH Đặc biệt & Space / Test`,\n    disabledCustomerName: `${runId} Disabled Customer`,\n    leadName: `${runId} Lead Đặc biệt`,\n    salesPartnerName: `${runId} Sales Partner`,\n    itemA: `${runId} Dịch vụ bán đặc biệt A`,\n    itemB: `${runId} Service With Spaces B`,\n    qtyA: 2,\n    qtyB: 3,\n    rateA: 150,\n    rateB: 95,\n    discountAmount: 10,\n    accounts: {\n      cash: '1110 - Cash - TDD',\n      receivable: '1310 - Debtors - TDD',\n      sales: '4110 - Sales - TDD'\n    }\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1180,
+          0
+        ],
+        "id": "build-real-sales-context",
+        "name": "Build Real Sales Context"
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer_name: $node[\"Build Real Sales Context\"].json.customerName, customer_type: \"Company\", customer_group: \"Individual\", territory: \"Vietnam\" }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -960,
+          0
+        ],
+        "id": "create-special-customer-v2",
+        "name": "Create Special Customer V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v2",
+          "operation": "get",
+          "documentName": "={{ $node[\"Create Special Customer V2\"].json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -740,
+          0
+        ],
+        "id": "get-special-customer-v2",
+        "name": "Get Special Customer V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v2",
+          "operation": "update",
+          "documentName": "={{ $node[\"Create Special Customer V2\"].json.name }}",
+          "dataJson": "={{ JSON.stringify({ customer_details: `${$node[\"Build Real Sales Context\"].json.runId} update test with Vietnamese customer name and slash-safe lookup.` }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -520,
+          0
+        ],
+        "id": "update-special-customer-v2",
+        "name": "Update Special Customer V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer_name: $node[\"Build Real Sales Context\"].json.disabledCustomerName, customer_type: \"Company\", customer_group: \"Individual\", territory: \"Vietnam\", disabled: 1 }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -300,
+          0
+        ],
+        "id": "create-disabled-customer-v2",
+        "name": "Create Disabled Customer V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v2",
+          "operation": "get",
+          "documentName": "={{ $node[\"Create Disabled Customer V2\"].json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -80,
+          0
+        ],
+        "id": "get-disabled-customer-v2",
+        "name": "Get Disabled Customer V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "lead",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ first_name: $node[\"Build Real Sales Context\"].json.leadName, lead_name: $node[\"Build Real Sales Context\"].json.leadName, company_name: $node[\"Build Real Sales Context\"].json.customerName, status: \"Lead\" }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          140,
+          0
+        ],
+        "id": "create-lead-v2",
+        "name": "Create Lead V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "item",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ item_code: $node[\"Build Real Sales Context\"].json.itemA, item_name: $node[\"Build Real Sales Context\"].json.itemA, item_group: \"Services\", stock_uom: \"Unit\", is_stock_item: 0, is_sales_item: 1, is_purchase_item: 0, standard_rate: $node[\"Build Real Sales Context\"].json.rateA }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          580,
+          0
+        ],
+        "id": "create-sales-item-a-v2",
+        "name": "Create Sales Item A V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "item",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ item_code: $node[\"Build Real Sales Context\"].json.itemB, item_name: $node[\"Build Real Sales Context\"].json.itemB, item_group: \"Services\", stock_uom: \"Unit\", is_stock_item: 0, is_sales_item: 1, is_purchase_item: 0, standard_rate: $node[\"Build Real Sales Context\"].json.rateB }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          800,
+          0
+        ],
+        "id": "create-sales-item-b-v2",
+        "name": "Create Sales Item B V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "opportunity",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ opportunity_from: \"Customer\", party_name: $node[\"Build Real Sales Context\"].json.customerName, customer_name: $node[\"Build Real Sales Context\"].json.customerName, status: \"Open\", transaction_date: $node[\"Build Real Sales Context\"].json.transactionDate, opportunity_type: \"Sales\", items: [{ item_code: $node[\"Build Real Sales Context\"].json.itemA, qty: 1, rate: $node[\"Build Real Sales Context\"].json.rateA }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          1020,
+          0
+        ],
+        "id": "create-opportunity-v2",
+        "name": "Create Opportunity V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "quotation",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ quotation_to: \"Customer\", party_name: $node[\"Build Real Sales Context\"].json.customerName, customer_name: $node[\"Build Real Sales Context\"].json.customerName, company: $node[\"Build Real Sales Context\"].json.company, transaction_date: $node[\"Build Real Sales Context\"].json.transactionDate, valid_till: $node[\"Build Real Sales Context\"].json.validTill, order_type: \"Sales\", items: [{ item_code: $node[\"Build Real Sales Context\"].json.itemA, qty: $node[\"Build Real Sales Context\"].json.qtyA, rate: $node[\"Build Real Sales Context\"].json.rateA }, { item_code: $node[\"Build Real Sales Context\"].json.itemB, qty: $node[\"Build Real Sales Context\"].json.qtyB, rate: $node[\"Build Real Sales Context\"].json.rateB }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          1240,
+          0
+        ],
+        "id": "create-quotation-v2",
+        "name": "Create Quotation V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "quotation",
+          "apiVersion": "v2",
+          "operation": "submit",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          1460,
+          0
+        ],
+        "id": "submit-quotation-v2",
+        "name": "Submit Quotation V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer: $node[\"Build Real Sales Context\"].json.customerName, company: $node[\"Build Real Sales Context\"].json.company, transaction_date: $node[\"Build Real Sales Context\"].json.transactionDate, delivery_date: $node[\"Build Real Sales Context\"].json.deliveryDate, apply_discount_on: \"Grand Total\", discount_amount: $node[\"Build Real Sales Context\"].json.discountAmount, items: [{ item_code: $node[\"Build Real Sales Context\"].json.itemA, qty: $node[\"Build Real Sales Context\"].json.qtyA, rate: $node[\"Build Real Sales Context\"].json.rateA, delivery_date: $node[\"Build Real Sales Context\"].json.deliveryDate }, { item_code: $node[\"Build Real Sales Context\"].json.itemB, qty: $node[\"Build Real Sales Context\"].json.qtyB, rate: $node[\"Build Real Sales Context\"].json.rateB, delivery_date: $node[\"Build Real Sales Context\"].json.deliveryDate }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          1680,
+          0
+        ],
+        "id": "create-sales-order-v2",
+        "name": "Create Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "submit",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          1900,
+          0
+        ],
+        "id": "submit-sales-order-v2",
+        "name": "Submit Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customDocType",
+          "customDocType": "Sales Order",
+          "apiVersion": "v2",
+          "operation": "get",
+          "documentName": "={{ $node[\"Submit Sales Order V2\"].json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          2120,
+          0
+        ],
+        "id": "get-sales-order-custom-v2",
+        "name": "Get Sales Order By Custom DocType V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customDocType",
+          "customDocType": "Sales Invoice",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer: $node[\"Build Real Sales Context\"].json.customerName, company: $node[\"Build Real Sales Context\"].json.company, posting_date: $node[\"Build Real Sales Context\"].json.transactionDate, due_date: $node[\"Build Real Sales Context\"].json.dueDate, debit_to: $node[\"Build Real Sales Context\"].json.accounts.receivable, remarks: `${$node[\"Build Real Sales Context\"].json.runId} sales invoice from Selling custom DocType test`, items: [{ item_code: $node[\"Build Real Sales Context\"].json.itemA, qty: 1, rate: $node[\"Build Real Sales Context\"].json.rateA, income_account: $node[\"Build Real Sales Context\"].json.accounts.sales }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          2340,
+          0
+        ],
+        "id": "create-sales-invoice-custom-v2",
+        "name": "Create Sales Invoice Custom V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customDocType",
+          "customDocType": "Sales Invoice",
+          "apiVersion": "v2",
+          "operation": "submit",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          2560,
+          0
+        ],
+        "id": "submit-sales-invoice-custom-v2",
+        "name": "Submit Sales Invoice Custom V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customDocType",
+          "customDocType": "Payment Entry",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ payment_type: \"Receive\", company: $node[\"Build Real Sales Context\"].json.company, posting_date: $node[\"Build Real Sales Context\"].json.transactionDate, party_type: \"Customer\", party: $node[\"Build Real Sales Context\"].json.customerName, paid_from: $node[\"Build Real Sales Context\"].json.accounts.receivable, paid_to: $node[\"Build Real Sales Context\"].json.accounts.cash, paid_amount: $node[\"Submit Sales Invoice Custom V2\"].json.grand_total, received_amount: $node[\"Submit Sales Invoice Custom V2\"].json.grand_total, remarks: `${$node[\"Build Real Sales Context\"].json.runId} receive customer payment`, references: [{ reference_doctype: \"Sales Invoice\", reference_name: $node[\"Submit Sales Invoice Custom V2\"].json.name, allocated_amount: $node[\"Submit Sales Invoice Custom V2\"].json.grand_total }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          2780,
+          0
+        ],
+        "id": "create-payment-entry-custom-v2",
+        "name": "Create Payment Entry Custom V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "customDocType",
+          "customDocType": "Payment Entry",
+          "apiVersion": "v2",
+          "operation": "submit",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          3000,
+          0
+        ],
+        "id": "submit-payment-entry-custom-v2",
+        "name": "Submit Payment Entry Custom V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $node['Build Real Sales Context'].json;\nconst docs = {\n  customer: $node['Create Special Customer V2'].json.name,\n  disabledCustomer: $node['Create Disabled Customer V2'].json.name,\n  lead: $node['Create Lead V2'].json.name,\n  itemA: $node['Create Sales Item A V2'].json.name,\n  itemB: $node['Create Sales Item B V2'].json.name,\n  opportunity: $node['Create Opportunity V2'].json.name,\n  quotation: $node['Submit Quotation V2'].json.name,\n  salesOrder: $node['Submit Sales Order V2'].json.name,\n  salesInvoice: $node['Submit Sales Invoice Custom V2'].json.name,\n  paymentEntry: $node['Submit Payment Entry Custom V2'].json.name\n};\nconst invoice = $node['Submit Sales Invoice Custom V2'].json;\nconst payment = $node['Submit Payment Entry Custom V2'].json;\nconst salesOrder = $node['Get Sales Order By Custom DocType V2'].json;\nconst serialized = JSON.stringify({ docs, invoice: { name: invoice.name, grand_total: invoice.grand_total }, payment: { name: payment.name, paid_amount: payment.paid_amount } });\nconst patterns = [/api[_-]?key/i, /api[_-]?secret/i, /authorization/i, /token\\s+[A-Za-z0-9]/i, /password/i];\nconst securityFindings = patterns.filter((pattern) => pattern.test(serialized)).map((pattern) => pattern.toString());\nreturn [{ json: {\n  runId: ctx.runId,\n  status: securityFindings.length === 0 ? 'passed' : 'needs_review',\n  customerSpecialChars: ctx.customerName,\n  disabledCustomerDisabled: $node['Get Disabled Customer V2'].json.disabled,\n  salesOrderDocTypeReadback: salesOrder.name,\n  salesOrderGrandTotal: salesOrder.grand_total,\n  salesInvoiceGrandTotal: invoice.grand_total,\n  paymentReceivedAmount: payment.received_amount,\n  docs,\n  securityFindings,\n  responsePolicy: 'Only document names, totals, and leak-scan status are returned. Credentials and raw upstream errors are not returned by this summary node.'\n} }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3220,
+          0
+        ],
+        "id": "return-safe-sales-summary",
+        "name": "Return Safe Sales Summary"
+      }
+    ],
+    "connections": {
+      "POST Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Real Sales Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Real Sales Context": {
+        "main": [
+          [
+            {
+              "node": "Create Special Customer V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Special Customer V2": {
+        "main": [
+          [
+            {
+              "node": "Get Special Customer V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Special Customer V2": {
+        "main": [
+          [
+            {
+              "node": "Update Special Customer V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Special Customer V2": {
+        "main": [
+          [
+            {
+              "node": "Create Disabled Customer V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Disabled Customer V2": {
+        "main": [
+          [
+            {
+              "node": "Get Disabled Customer V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Disabled Customer V2": {
+        "main": [
+          [
+            {
+              "node": "Create Lead V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Lead V2": {
+        "main": [
+          [
+            {
+              "node": "Create Sales Item A V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Sales Item A V2": {
+        "main": [
+          [
+            {
+              "node": "Create Sales Item B V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Sales Item B V2": {
+        "main": [
+          [
+            {
+              "node": "Create Opportunity V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Opportunity V2": {
+        "main": [
+          [
+            {
+              "node": "Create Quotation V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Quotation V2": {
+        "main": [
+          [
+            {
+              "node": "Submit Quotation V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Submit Quotation V2": {
+        "main": [
+          [
+            {
+              "node": "Create Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Submit Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Submit Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Get Sales Order By Custom DocType V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Sales Order By Custom DocType V2": {
+        "main": [
+          [
+            {
+              "node": "Create Sales Invoice Custom V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Sales Invoice Custom V2": {
+        "main": [
+          [
+            {
+              "node": "Submit Sales Invoice Custom V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Submit Sales Invoice Custom V2": {
+        "main": [
+          [
+            {
+              "node": "Create Payment Entry Custom V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Payment Entry Custom V2": {
+        "main": [
+          [
+            {
+              "node": "Submit Payment Entry Custom V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Submit Payment Entry Custom V2": {
+        "main": [
+          [
+            {
+              "node": "Return Safe Sales Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Return Safe Sales Summary": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "tags": []
+  }
+]

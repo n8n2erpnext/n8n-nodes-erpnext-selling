@@ -1,0 +1,228 @@
+[
+  {
+    "id": "sellNegativeCasesV2Test01",
+    "name": "ERPNext Selling V2 Negative Cases Test",
+    "active": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "erpnext-selling-v2-negative-cases-test",
+          "responseMode": "lastNode",
+          "responseData": "allEntries",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -900,
+          0
+        ],
+        "id": "negative-cases-webhook",
+        "name": "POST Webhook",
+        "webhookId": "erpnext-selling-v2-negative-cases-test"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $json.body ?? {};\nreturn [{ json: {\n  company: 'Thái Duy Digital',\n  transactionDate: new Date().toISOString().slice(0, 10),\n  deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),\n  customerName: body.customerName,\n  salesOrder: body.salesOrder,\n  itemCode: body.itemCode,\n  fakeSalesOrderName: body.fakeSalesOrderName ?? 'BAD / DOC NAME With Space'\n} }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -680,
+          0
+        ],
+        "id": "build-negative-context",
+        "name": "Build Negative Context"
+      },
+      {
+        "parameters": {
+          "resource": "item",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ item_code: [\"Build Negative Context\"].json.itemCode, item_name: [\"Build Negative Context\"].json.itemCode, item_group: \"Services\", stock_uom: \"Unit\", is_stock_item: 0, is_sales_item: 1, is_purchase_item: 0 }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -460,
+          0
+        ],
+        "id": "duplicate-item-create-should-fail",
+        "name": "Duplicate Item Create Should Fail",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ company: $node[\"Build Negative Context\"].json.company, transaction_date: $node[\"Build Negative Context\"].json.transactionDate, delivery_date: $node[\"Build Negative Context\"].json.deliveryDate, items: [{ item_code: $node[\"Build Negative Context\"].json.itemCode, qty: 1, rate: 10, delivery_date: $node[\"Build Negative Context\"].json.deliveryDate }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -240,
+          0
+        ],
+        "id": "sales-order-missing-customer-should-fail",
+        "name": "Sales Order Missing Customer Should Fail",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "delete",
+          "documentName": "={{ $node[\"Build Negative Context\"].json.salesOrder }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -20,
+          0
+        ],
+        "id": "delete-submitted-sales-order-should-fail",
+        "name": "Delete Submitted Sales Order Should Fail",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "get",
+          "documentName": "={{ $node[\"Build Negative Context\"].json.fakeSalesOrderName }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          200,
+          0
+        ],
+        "id": "get-fake-sales-order-should-fail",
+        "name": "Get Fake Sales Order Should Fail",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const failures = [\n  ['duplicateItem', $node['Duplicate Item Create Should Fail'].json],\n  ['salesOrderMissingCustomer', $node['Sales Order Missing Customer Should Fail'].json],\n  ['deleteSubmittedSalesOrder', $node['Delete Submitted Sales Order Should Fail'].json],\n  ['getFakeSalesOrder', $node['Get Fake Sales Order Should Fail'].json],\n];\nconst failedAsExpected = failures.map(([name, value]) => ({ name, hasError: Boolean(value.error), message: value.error ?? null }));\nconst serialized = JSON.stringify(failedAsExpected);\nconst patterns = [/api[_-]?key/i, /api[_-]?secret/i, /authorization/i, /token\\s+[A-Za-z0-9]/i, /password/i];\nconst securityFindings = patterns.filter((pattern) => pattern.test(serialized)).map((pattern) => pattern.toString());\nreturn [{ json: {\n  status: failedAsExpected.every((item) => item.hasError) && securityFindings.length === 0 ? 'passed' : 'needs_review',\n  salesOrderUnderTest: $node['Build Negative Context'].json.salesOrder,\n  failedAsExpected,\n  securityFindings,\n  responsePolicy: 'Only sanitized error messages and leak-scan status are returned.'\n} }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          420,
+          0
+        ],
+        "id": "return-negative-summary",
+        "name": "Return Negative Summary"
+      }
+    ],
+    "connections": {
+      "POST Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Negative Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Negative Context": {
+        "main": [
+          [
+            {
+              "node": "Duplicate Item Create Should Fail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sales Order Missing Customer Should Fail": {
+        "main": [
+          [
+            {
+              "node": "Delete Submitted Sales Order Should Fail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete Submitted Sales Order Should Fail": {
+        "main": [
+          [
+            {
+              "node": "Get Fake Sales Order Should Fail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Fake Sales Order Should Fail": {
+        "main": [
+          [
+            {
+              "node": "Return Negative Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Return Negative Summary": {
+        "main": [
+          []
+        ]
+      },
+      "Duplicate Item Create Should Fail": {
+        "main": [
+          [
+            {
+              "node": "Sales Order Missing Customer Should Fail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "tags": []
+  }
+]

@@ -1,0 +1,81 @@
+[
+  {
+    "id": "sellGetCustomers01",
+    "name": "ERPNext Selling GET Customers Webhook",
+    "active": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "GET",
+          "path": "erpnext-selling-get-customers",
+          "responseMode": "lastNode",
+          "responseData": "allEntries",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "selling-get-customers-webhook",
+        "name": "GET Webhook",
+        "webhookId": "erpnext-selling-get-customers"
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v1",
+          "operation": "getMany",
+          "fields": "name,customer_name,customer_group,territory,disabled",
+          "filtersJson": "[]",
+          "returnAll": false,
+          "limit": 20,
+          "orderBy": "modified desc"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          260,
+          0
+        ],
+        "id": "get-customers",
+        "name": "Get Customers",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "GET Webhook": {
+        "main": [
+          [
+            {
+              "node": "Get Customers",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Customers": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "tags": []
+  }
+]

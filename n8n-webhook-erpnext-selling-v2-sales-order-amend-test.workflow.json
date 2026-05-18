@@ -1,0 +1,323 @@
+[
+  {
+    "id": "sellSalesOrderAmendV2Test01",
+    "name": "ERPNext Selling V2 Sales Order Amend Test",
+    "active": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "erpnext-selling-v2-sales-order-amend-test",
+          "responseMode": "lastNode",
+          "responseData": "allEntries",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -900,
+          0
+        ],
+        "id": "sales-order-amend-webhook",
+        "name": "POST Webhook",
+        "webhookId": "erpnext-selling-v2-sales-order-amend-test"
+      },
+      {
+        "parameters": {
+          "jsCode": "const now = new Date();\nconst today = now.toISOString().slice(0, 10);\nconst due = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);\nconst runId = `N8N-SELL-AMEND-${Date.now()}`;\nreturn [{ json: {\n  runId,\n  company: 'Thái Duy Digital',\n  transactionDate: today,\n  deliveryDate: due,\n  customerName: `${runId} Customer`,\n  itemCode: `${runId} Service Item`,\n  originalQty: 1,\n  amendedQty: 2,\n  rate: 70\n} }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -680,
+          0
+        ],
+        "id": "build-amend-context",
+        "name": "Build Amend Context"
+      },
+      {
+        "parameters": {
+          "resource": "customer",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer_name: $node[\"Build Amend Context\"].json.customerName, customer_type: \"Company\", customer_group: \"Individual\", territory: \"Vietnam\" }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -460,
+          0
+        ],
+        "id": "create-amend-customer-v2",
+        "name": "Create Amend Customer V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "item",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ item_code: $node[\"Build Amend Context\"].json.itemCode, item_name: $node[\"Build Amend Context\"].json.itemCode, item_group: \"Services\", stock_uom: \"Unit\", is_stock_item: 0, is_sales_item: 1, is_purchase_item: 0, standard_rate: $node[\"Build Amend Context\"].json.rate }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -240,
+          0
+        ],
+        "id": "create-amend-item-v2",
+        "name": "Create Amend Item V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer: $node[\"Build Amend Context\"].json.customerName, company: $node[\"Build Amend Context\"].json.company, transaction_date: $node[\"Build Amend Context\"].json.transactionDate, delivery_date: $node[\"Build Amend Context\"].json.deliveryDate, items: [{ item_code: $node[\"Build Amend Context\"].json.itemCode, qty: $node[\"Build Amend Context\"].json.originalQty, rate: $node[\"Build Amend Context\"].json.rate, delivery_date: $node[\"Build Amend Context\"].json.deliveryDate }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          -20,
+          0
+        ],
+        "id": "create-original-sales-order-v2",
+        "name": "Create Original Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "submit",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          200,
+          0
+        ],
+        "id": "submit-original-sales-order-v2",
+        "name": "Submit Original Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "cancel",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          420,
+          0
+        ],
+        "id": "cancel-original-sales-order-v2",
+        "name": "Cancel Original Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "create",
+          "dataJson": "={{ JSON.stringify({ customer: $node[\"Build Amend Context\"].json.customerName, company: $node[\"Build Amend Context\"].json.company, transaction_date: $node[\"Build Amend Context\"].json.transactionDate, delivery_date: $node[\"Build Amend Context\"].json.deliveryDate, amended_from: $node[\"Cancel Original Sales Order V2\"].json.name, items: [{ item_code: $node[\"Build Amend Context\"].json.itemCode, qty: $node[\"Build Amend Context\"].json.amendedQty, rate: $node[\"Build Amend Context\"].json.rate, delivery_date: $node[\"Build Amend Context\"].json.deliveryDate }] }) }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          640,
+          0
+        ],
+        "id": "create-amended-sales-order-v2",
+        "name": "Create Amended Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "salesOrder",
+          "apiVersion": "v2",
+          "operation": "submit",
+          "documentName": "={{ $json.name }}"
+        },
+        "type": "n8n-nodes-erpnext-selling.erpNextSelling",
+        "typeVersion": 1,
+        "position": [
+          860,
+          0
+        ],
+        "id": "submit-amended-sales-order-v2",
+        "name": "Submit Amended Sales Order V2",
+        "credentials": {
+          "erpNextApi": {
+            "id": "9hFY985G0WpX5Xyt",
+            "name": "ERPNext account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{ json: {\n  status: 'passed',\n  runId: $node['Build Amend Context'].json.runId,\n  originalSalesOrder: $node['Cancel Original Sales Order V2'].json.name,\n  originalDocstatus: $node['Cancel Original Sales Order V2'].json.docstatus,\n  amendedSalesOrder: $node['Submit Amended Sales Order V2'].json.name,\n  amendedFrom: $node['Submit Amended Sales Order V2'].json.amended_from,\n  amendedDocstatus: $node['Submit Amended Sales Order V2'].json.docstatus,\n  amendedQty: $node['Build Amend Context'].json.amendedQty\n} }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1080,
+          0
+        ],
+        "id": "return-amend-summary",
+        "name": "Return Amend Summary"
+      }
+    ],
+    "connections": {
+      "POST Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Amend Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Amend Context": {
+        "main": [
+          [
+            {
+              "node": "Create Amend Customer V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Amend Customer V2": {
+        "main": [
+          [
+            {
+              "node": "Create Amend Item V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Amend Item V2": {
+        "main": [
+          [
+            {
+              "node": "Create Original Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Original Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Submit Original Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Submit Original Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Cancel Original Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cancel Original Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Create Amended Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Amended Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Submit Amended Sales Order V2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Submit Amended Sales Order V2": {
+        "main": [
+          [
+            {
+              "node": "Return Amend Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Return Amend Summary": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "tags": []
+  }
+]
