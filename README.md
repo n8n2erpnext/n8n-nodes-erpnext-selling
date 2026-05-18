@@ -3,7 +3,7 @@
 [![Live tested](https://img.shields.io/badge/live--tested-ERPNext%20v16%20%2F%20n8n%20self--hosted%20%2F%20LXD%20%2F%20API%20v2-00A6A6)](#live-tested-status)
 [![Runtime audit](https://img.shields.io/badge/runtime%20audit-0%20vulnerabilities-2E7D5F)](#development)
 [![Node checks](https://img.shields.io/badge/n8n%20node%20lint%20%2B%20build-passing-2E7D5F)](#development)
-[![Package](https://img.shields.io/badge/package-0.1.0-2490EF)](./package.json)
+[![Package](https://img.shields.io/badge/package-0.1.1-2490EF)](./package.json)
 
 Community n8n node package for ERPNext/Frappe Selling v15-v16.
 
@@ -395,7 +395,7 @@ npx @n8n/node-cli build
 npm pack --dry-run
 ```
 
-Current verification for `0.1.0`:
+Current verification for `0.1.1`:
 
 ```text
 npm run lint            passed
