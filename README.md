@@ -9,6 +9,19 @@ Community n8n node package for ERPNext/Frappe Selling v15-v16.
 
 This package is part of the `n8n2erpnext` ecosystem. It focuses on customer-facing sales workflows and keeps generic escape hatches for custom DocTypes and whitelisted Frappe methods.
 
+## Connected Ecosystem Coverage
+
+Selling is live-tested as part of a connected ERPNext business lifecycle, not as an isolated customer-document node.
+
+The Stock validation suite includes end-to-end workflows that connect Buying, Stock, Selling, and Accounting:
+
+- Standard Product Lifecycle: Supplier -> Purchase Receipt -> inventory increase -> Purchase Invoice -> Customer Sale -> Sales Invoice `update_stock = 1` -> inventory decrease.
+- Exception / After-Sales Lifecycle: sale -> return credit note -> warranty warehouse -> defective warehouse -> repair/virtual workshop -> disposal.
+- Cross-module lock validation: linked Sales Invoice blocks unsafe Delivery Note cancellation in the Stock suite.
+- Ledger validation: `Bin`, `Stock Ledger Entry`, Sales Invoice, Credit Note, Delivery Note, and Stock Entry documents are verified after submit.
+
+This proves the Selling node participates in the full operational chain: turning inventory into customer revenue, linking to Stock movement, and preserving accounting integrity after invoicing or returns.
+
 ## Live-Tested Status
 
 This package has been live-tested end to end on the project ERPNext/Frappe test environment:
