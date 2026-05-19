@@ -32,7 +32,8 @@ This package has been live-tested end to end on the project ERPNext/Frappe test 
 | n8n runtime | Live-tested on self-hosted n8n `2.20.7-exp.0` |
 | Infrastructure | Live-tested through LXD ERPNext container at `http://10.192.135.2:8001` with host header `erp.thaiduy.digital` |
 | API coverage | Live-tested with Frappe API v1 read workflow and API v2 document workflows |
-| Core selling lifecycle | Customer -> Lead -> Opportunity -> Quotation submit -> Sales Order submit |
+| Module lifecycle | Customer, Lead, Opportunity, Quotation, Sales Order, Sales Invoice bridge, Payment Entry bridge, amendment flow, and negative cases |
+| Ecosystem coverage | Buying -> Stock -> Selling -> Accounting end-to-end workflows |
 | Adjacent document coverage | Sales Invoice submit and Payment Entry submit through `Custom DocType` |
 | Amendment coverage | Sales Order cancel/amend/submit flow |
 | Negative coverage | Duplicate Item, missing Customer, delete submitted Sales Order, fake Sales Order lookup |
@@ -80,6 +81,16 @@ n8n Webhook / Schedule / App Event
   -> ERPNext Selling node
   -> Customer, Lead, Opportunity, Quotation, or Sales Order
   -> safe summary response or downstream system
+```
+
+Recommended production network pattern:
+
+```text
+Public Client
+  -> HTTPS reverse proxy / VPN / allowlist
+  -> n8n
+  -> private network or internal VPS address
+  -> ERPNext / Frappe site
 ```
 
 ## Supported Resources
@@ -171,6 +182,8 @@ When n8n and ERPNext run on the same VPS, you can point n8n at the internal ERPN
 - Site URL: `http://erpnext.internal:8001`
 - Site Host Header: `erp.example.com`
 
+This avoids public reverse-proxy authentication while still letting ERPNext receive the expected site host.
+
 For the current VPS/LXD test setup:
 
 ```text
@@ -179,6 +192,14 @@ Site Host Header: erp.thaiduy.digital
 ```
 
 This is infrastructure routing information for the project test environment, not credential material. API keys and API secrets are not included in this README.
+
+For production, create a dedicated ERPNext integration user instead of using a daily admin account. Give that user only the roles required for the workflows it runs.
+
+Official Frappe references:
+
+- [Frappe REST API authentication](https://docs.frappe.io/framework/user/en/api/rest)
+- [Frappe token based authentication](https://docs.frappe.io/framework/v15/user/en/guides/integration/rest_api/token_based_authentication)
+- [Generate Frappe API key and secret](https://docs.frappe.io/framework/v15/user/en/guides/integration/how_to_setup_token_based_auth)
 
 ## Examples
 
